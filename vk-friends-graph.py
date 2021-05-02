@@ -73,7 +73,7 @@ for i, follower in enumerate(my_followers):
               'user_id' : follower['id'],
               'offset' : offset,
               'count' : count,
-              'fields' : fields.replace(' ', '')}
+              'fields' : ','.join(fields)}
     req = requests.get(url, params=params)
     
     try:
