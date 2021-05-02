@@ -36,6 +36,8 @@ while True:
     user_country = user['country']['title'] if user.get('country') else 'Unknown'
     user_city = user['city']['title'] if user.get('city') else 'Unknown'
     user_bdate = user['bdate'] if user.get('bdate') else 'Unknown'
+
+    break
     
 
 print('Имя:', user_name)
