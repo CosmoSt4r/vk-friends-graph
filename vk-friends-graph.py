@@ -3,33 +3,46 @@ import os
 import time
 
 token = 'your token'
+version = '5.130'
+offset = 0
+fields = ['sex', 'bdate', 'city', 'country', 'domain']
 
 while True:
     user_id = input('Введите цифровой ID: ')
 
     print('Получение информации об аккаунте')
-    params = {'user_id' : user_id,
-              'fields' : 'sex',
+    
+    params = {'user_id' : int(user_id),
+              'fields' : ','.join(fields),
               'name_case' : 'Nom',
-              'v' : '5.130',
+              'v' : version,
               'access_token' : token}
+    url = 'https://api.vk.com/method/users.get'
+
+
     try:
-        req = requests.get('https://api.vk.com/method/users.get', params=params)
+        req = requests.get(url, params=params)
         user = req.json()['response'][0]
-        user_name = (user['first_name'] + ' ' + user['last_name']).strip()
-        user_gender = 'male' if user['sex'] == 2 else 'female'
-        break
     except:
-        print('Не удалось получить информацию об аккаунте')
+        print('Не удалось получить информацию')
+        continue
+    
+    # Обязательные поля
+    user_name = (user['first_name'] + ' ' + user['last_name']).strip()
+    user_gender = 'male' if user['sex'] == 2 else 'female'
+    user_domain = user['domain']
+
+    # Необязательные поля
+    user_country = user['country']['title'] if user.get('country') else 'Unknown'
+    user_city = user['city']['title'] if user.get('city') else 'Unknown'
+    user_bdate = user['bdate'] if user.get('bdate') else 'Unknown'
+    
 
 print('Имя:', user_name)
 print('Получение списка друзей')
 
 url = f'https://api.vk.com/method/friends.get'
 count = 100
-version = '5.130'
-offset = 0
-fields = 'sex'
 
 my_followers = []
 
@@ -38,7 +51,7 @@ params = {'v' : version,
           'user_id' : user_id,
           'offset' : offset,
           'count' : count,
-          'fields' : fields.replace(' ', '')}
+          'fields' : ','.join(fields)}
 req = requests.get(url, params=params)
   
 for follower in req.json()['response']['items']:
