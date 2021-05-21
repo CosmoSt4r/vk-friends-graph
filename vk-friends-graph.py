@@ -2,9 +2,8 @@ import requests
 import os
 import time
 
-token = 'your token'
-version = '5.130'
-offset = 0
+token = os.environ.get('TOKEN')
+version = '5.131'
 fields = ['sex', 'bdate', 'city', 'country', 'domain']
 
 while True:
@@ -18,7 +17,6 @@ while True:
               'v' : version,
               'access_token' : token}
     url = 'https://api.vk.com/method/users.get'
-
 
     try:
         req = requests.get(url, params=params)
@@ -41,21 +39,29 @@ while True:
     
 
 print('Имя:', user_name)
+
+while True:
+  try:
+    print('Введите максимальное количество друзей для одного человека')
+    print('(рекомендуется 100-250)')
+    count = int(input('Ваш выбор: '))
+    break
+  except:
+    print('Ошибка ввода, повторите.')
+
 print('Получение списка друзей')
 
 url = f'https://api.vk.com/method/friends.get'
-count = 100
 
 my_followers = []
 
 params = {'v' : version,
           'access_token' : token,
           'user_id' : user_id,
-          'offset' : offset,
           'count' : count,
           'fields' : ','.join(fields)}
 req = requests.get(url, params=params)
-  
+
 for follower in req.json()['response']['items']:
   my_followers.append(follower)
 
@@ -71,7 +77,6 @@ for i, follower in enumerate(my_followers):
     params = {'v' : version,
               'access_token' : token,
               'user_id' : follower['id'],
-              'offset' : offset,
               'count' : count,
               'fields' : ','.join(fields)}
     req = requests.get(url, params=params)
@@ -92,8 +97,7 @@ for i, follower in enumerate(my_followers):
 for follower in my_followers:
   edges.append(f"{user_id},{follower['id']}")
 
-print()
-print('Закрытых аккаунтов среди друзей:', len(my_followers) - open_accounts)
+print('\nЗакрытых аккаунтов среди друзей:', len(my_followers) - open_accounts)
 
 nodes = []
 
