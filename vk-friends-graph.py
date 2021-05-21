@@ -53,7 +53,7 @@ print('Получение списка друзей')
 
 url = f'https://api.vk.com/method/friends.get'
 
-my_followers = []
+my_friends = []
 
 params = {'v' : version,
           'access_token' : token,
@@ -62,21 +62,21 @@ params = {'v' : version,
           'fields' : ','.join(fields)}
 req = requests.get(url, params=params)
 
-for follower in req.json()['response']['items']:
-  my_followers.append(follower)
+for friend in req.json()['response']['items']:
+  my_friends.append(friend)
 
-print('Количество друзей:', len(my_followers))
+print('Количество друзей:', len(my_friends))
 
 edges = []
-followers_second = []
+friends_of_friends = []
 
 open_accounts = 0
-for i, follower in enumerate(my_followers):
+for i, friend in enumerate(my_friends):
     offset = 0
 
     params = {'v' : version,
               'access_token' : token,
-              'user_id' : follower['id'],
+              'user_id' : friend['id'],
               'count' : count,
               'fields' : ','.join(fields)}
     req = requests.get(url, params=params)
@@ -87,35 +87,35 @@ for i, follower in enumerate(my_followers):
         continue
 
     open_accounts += 1
-    for _follower in response:
-        followers_second.append(_follower)
-        edges.append(f"{follower['id']},{_follower['id']}")
+    for _friend in response:
+        friends_of_friends.append(_friend)
+        edges.append(f"{friend['id']},{_friend['id']}")
 
-    print(f'Получение списка друзей друзей: {i+1}/{len(my_followers)}', end='\r')
+    print(f'Получение списка друзей друзей: {i+1}/{len(my_friends)}', end='\r')
     time.sleep(0.5)
 
-for follower in my_followers:
-  edges.append(f"{user_id},{follower['id']}")
+for friend in my_friends:
+  edges.append(f"{user_id},{friend['id']}")
 
-print('\nЗакрытых аккаунтов среди друзей:', len(my_followers) - open_accounts)
+print('\nЗакрытых аккаунтов среди друзей:', len(my_friends) - open_accounts)
 
 nodes = []
 
 nodes.append(f'{user_id},{user_name},me,{user_gender}')
 
-for follower in my_followers:
-  _id = str(follower['id'])
-  username = (follower['first_name'] + ' ' + follower['last_name']).strip()
+for friend in my_friends:
+  _id = str(friend['id'])
+  username = (friend['first_name'] + ' ' + friend['last_name']).strip()
   type_ = 'friend'
-  sex = 'male' if follower['sex'] == 2 else 'female'
+  sex = 'male' if friend['sex'] == 2 else 'female'
 
   nodes.append(','.join([_id, username, type_, sex]))
 
-for follower in followers_second:
-  _id = str(follower['id'])
-  username = (follower['first_name'] + ' ' + follower['last_name']).strip()
+for friend in friends_of_friends:
+  _id = str(friend['id'])
+  username = (friend['first_name'] + ' ' + friend['last_name']).strip()
   type_ = 'friend_of_friend'
-  sex = 'male' if follower['sex'] == 2 else 'female'
+  sex = 'male' if friend['sex'] == 2 else 'female'
 
   new_f = ','.join([_id, username, type_, sex])
 
