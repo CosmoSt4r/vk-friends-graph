@@ -3,6 +3,10 @@ import os
 import time
 
 token = os.environ.get('TOKEN')
+if not token:
+  print('Токен не найден в переменных окружения')
+  token = input('Введите токен: ')
+
 version = '5.131'
 fields = ['sex', 'bdate', 'city', 'country', 'domain']
 
