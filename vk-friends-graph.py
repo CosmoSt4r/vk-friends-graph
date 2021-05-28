@@ -102,7 +102,12 @@ my_friends = request_friends(user_id, count, fields, token, version)['items']
 
 print('Количество друзей:', len(my_friends))
 
-edges = []
+drop_without_mutuals = True if \
+  input('Пропускать людей без общих с вами друзей? (y/n): ').lower() == 'y' else False
+dropped = 0
+
+edges, nodes = [], []
+nodes.append(make_node_from_user_info(user))
 
 friends_of_friends = []
 open_accounts = 0
@@ -119,21 +124,25 @@ for i, friend in enumerate(my_friends):
   for _friend in request:
     if is_mutual(_friend, my_friends):
       mutual_friends += 1
+
+  if drop_without_mutuals and mutual_friends < 2:
+    dropped += 1
+    time.sleep(0.5)
+    continue
+
+  for _friend in request:
     friends_of_friends.append(_friend)
     edges.append(f"{friend['id']},{_friend['id']},1")
 
   edges.append(f"{user_id},{friend['id']},{mutual_friends}")
+  friend = make_dict_from_user_info(friend, 'friend')
+  nodes.append(make_node_from_user_info(friend))
   print(f'Получение списка друзей друзей: {i+1}/{len(my_friends)}', end='\r')
   time.sleep(0.5)
 
 print('\nЗакрытых аккаунтов среди друзей:', len(my_friends) - open_accounts)
-
-nodes = []
-nodes.append(make_node_from_user_info(user))
-
-for friend in my_friends:
-  friend = make_dict_from_user_info(friend, 'friend')
-  nodes.append(make_node_from_user_info(friend))
+if drop_without_mutuals:
+  print('Пропущено друзей:', dropped)
 
 for friend in friends_of_friends:
   friend = make_dict_from_user_info(friend, 'friend_of_friend')
