@@ -92,59 +92,51 @@ while True:
 
 print('Получение списка друзей')
 
-my_friends = []
-
-request = request_friends(user_id, count, fields, token, version)
-
-for friend in request['items']:
-  my_friends.append(friend)
+my_friends = request_friends(user_id, count, fields, token, version)['items']
 
 print('Количество друзей:', len(my_friends))
 
 edges = []
-friends_of_friends = []
-
-open_accounts = 0
-for i, friend in enumerate(my_friends):
-
-    request = request_friends(friend.get('id'), count, fields, token, version)
-    try:
-        response = request['items']
-    except:
-        continue
-
-    open_accounts += 1
-    for _friend in response:
-        friends_of_friends.append(_friend)
-        edges.append(f"{friend['id']},{_friend['id']}")
-
-    print(f'Получение списка друзей друзей: {i+1}/{len(my_friends)}', end='\r')
-    time.sleep(0.5)
-
 for friend in my_friends:
   edges.append(f"{user_id},{friend['id']}")
+  
+friends_of_friends = []
+open_accounts = 0
+
+for i, friend in enumerate(my_friends):
+  mutual_friends = 0
+  request = request_friends(friend.get('id'), count, fields, token, version)
+  try:
+      response = request['items']
+  except:
+      continue
+  
+  open_accounts += 1
+  for _friend in response:
+      friends_of_friends.append(_friend)
+      edges.append(f"{friend['id']},{_friend['id']}")
+
+  print(f'Получение списка друзей друзей: {i+1}/{len(my_friends)}', end='\r')
+  time.sleep(0.5)
 
 print('\nЗакрытых аккаунтов среди друзей:', len(my_friends) - open_accounts)
 
 nodes = []
-
 nodes.append(make_node_from_user_info(user))
 
 for friend in my_friends:
   friend = make_dict_from_user_info(friend, 'friend')
-
   nodes.append(make_node_from_user_info(friend))
 
 for friend in friends_of_friends:
   friend = make_dict_from_user_info(friend, 'friend_of_friend')
-
   new_node = make_node_from_user_info(friend)
 
   if new_node not in nodes:
     nodes.append(new_node)
 
 print(f'Количество вершин: {len(nodes)}. Запись в файл nodes.csv')
-write_to_csv('nodes.csv', 'id,label,type,sex', nodes)
+write_to_csv('nodes.csv', 'id,label,type,sex,domain,country,city,bdate', nodes)
 
 print(f'Количество рёбер: {len(edges)}. Запись в файл edges.csv')
 write_to_csv('edges.csv', 'source,target', edges)
