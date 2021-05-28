@@ -16,7 +16,12 @@ def get_user_info(user_id, fields, api_version):
   except:
       raise ValueError('Wrong user id or server error')
   
+  return user
+
+def make_dict_from_user_info(user):
+
   user_info = {}
+  
   # Обязательные поля
   user_info['name'] = (user['first_name'] + ' ' + user['last_name']).strip()
   user_info['gender'] = 'male' if user['sex'] == 2 else 'female'
@@ -35,6 +40,15 @@ def write_to_csv(filename, fields, rows):
     for row in rows:
       f.write(row + '\n')
 
+def request_frineds(user_id, count, fields, token, api_version):
+  url = f'https://api.vk.com/method/friends.get'
+  params = {'v' : api_version,
+            'access_token' : token,
+            'user_id' : user_id,
+            'count' : count,
+            'fields' : ','.join(fields)}
+  return requests.get(url, params=params).json()['response']
+
 token = os.environ.get('TOKEN')
 if not token:
   print('Токен не найден в переменных окружения')
@@ -50,6 +64,7 @@ while True:
 
   try: 
     user = get_user_info(user_id, fields, version)
+    user = make_dict_from_user_info(user)
     break
   except ValueError:
     print('Не удалось получить информацию')
@@ -68,18 +83,11 @@ while True:
 
 print('Получение списка друзей')
 
-url = f'https://api.vk.com/method/friends.get'
-
 my_friends = []
 
-params = {'v' : version,
-          'access_token' : token,
-          'user_id' : user_id,
-          'count' : count,
-          'fields' : ','.join(fields)}
-req = requests.get(url, params=params)
+request = request_frineds(user_id, count, fields, token, version)
 
-for friend in req.json()['response']['items']:
+for friend in request['items']:
   my_friends.append(friend)
 
 print('Количество друзей:', len(my_friends))
@@ -89,17 +97,10 @@ friends_of_friends = []
 
 open_accounts = 0
 for i, friend in enumerate(my_friends):
-    offset = 0
 
-    params = {'v' : version,
-              'access_token' : token,
-              'user_id' : friend['id'],
-              'count' : count,
-              'fields' : ','.join(fields)}
-    req = requests.get(url, params=params)
-    
+    request = request_frineds(friend.get('id'), count, fields, token, version)
     try:
-        response = req.json()['response']['items']
+        response = request['items']
     except:
         continue
 
