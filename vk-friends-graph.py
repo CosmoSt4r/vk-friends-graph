@@ -1,3 +1,4 @@
+import csv_to_gml
 import requests
 import os
 import time
@@ -156,5 +157,10 @@ write_to_csv('nodes.csv', 'id,label,type,sex,domain,country,city,bdate', nodes)
 
 print(f'Количество рёбер: {len(edges)}. Запись в файл edges.csv')
 write_to_csv('edges.csv', 'source,target,weight', edges)
+
+if input('Конвертировать граф из csv в gml? (y/n): ').lower() == 'y':
+  csv_to_gml.csv_to_gml('graph.gml', 'nodes.csv', 'edges.csv')
+  os.remove('nodes.csv')
+  os.remove('edges.csv')
 
 input('Готово!')

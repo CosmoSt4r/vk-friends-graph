@@ -25,7 +25,7 @@ def csv_to_gml(filename, nodes_file, edges_file):
         file.write('graph \n[\n')
 
         write_csv_to_gml(nodes, 'node', file)
-        write_csv_to_gml(edges, 'edges', file)
+        write_csv_to_gml(edges, 'edge', file)
 
         file.write(']')
 
