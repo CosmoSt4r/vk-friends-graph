@@ -1,4 +1,3 @@
-import csv_to_gml
 import requests
 import os
 import time
@@ -159,8 +158,12 @@ print(f'Количество рёбер: {len(edges)}. Запись в файл 
 write_to_csv('edges.csv', 'source,target,weight', edges)
 
 if input('Конвертировать граф из csv в gml? (y/n): ').lower() == 'y':
-  csv_to_gml.csv_to_gml('graph.gml', 'nodes.csv', 'edges.csv')
-  os.remove('nodes.csv')
-  os.remove('edges.csv')
+  try:
+    import csv_to_gml
+    csv_to_gml.csv_to_gml('graph.gml', 'nodes.csv', 'edges.csv')
+    os.remove('nodes.csv')
+    os.remove('edges.csv')
+  except ModuleNotFoundError:
+    print('Не найден файл для конвертации из csv в gml')
 
 input('Готово!')
