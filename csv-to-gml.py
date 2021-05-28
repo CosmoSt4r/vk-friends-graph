@@ -1,3 +1,18 @@
+def write_csv_to_gml(info, _type, file):
+
+    fields = info[0].strip().split(',')
+    rows = info[1:]
+
+    for row in rows:
+        row = row.strip().split(',')
+
+        file.write(f'\t{_type} \n\t[\n')
+        for i, field in enumerate(fields):
+            if field != 'id':
+                row[i] = '"' + row[i] + '"'
+            file.write(f"\t\t{field} {row[i]}\n")
+        file.write('\t]\n')
+
 def csv_to_gml(filename, nodes_file, edges_file):
 
     with open(nodes_file, encoding='utf-8') as file:
@@ -9,29 +24,8 @@ def csv_to_gml(filename, nodes_file, edges_file):
     with open(filename, 'w', encoding='utf-8') as file:
         file.write('graph \n[\n')
 
-        fields = nodes[0].strip().split(',')
-        rows = nodes[1:]
-
-        for row in rows:
-            row = row.strip().split(',')
-
-            file.write('\tnode \n\t[\n')
-            for i, field in enumerate(fields):
-                if field != 'id':
-                    row[i] = '"' + row[i] + '"'
-                file.write(f"\t\t{field} {row[i]}\n")
-            file.write('\t]\n')
-
-        fields = edges[0].strip().split(',')
-        rows = edges[1:]
-
-        for row in rows:
-            row = row.strip().split(',')
-
-            file.write('\tedge \n\t[\n')
-            for i, field in enumerate(fields):
-                file.write(f"\t\t{field} {row[i]}\n")
-            file.write('\t]\n')
+        write_csv_to_gml(nodes, 'node', file)
+        write_csv_to_gml(edges, 'edges', file)
 
         file.write(']')
 
