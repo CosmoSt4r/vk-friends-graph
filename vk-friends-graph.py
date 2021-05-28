@@ -29,6 +29,12 @@ def get_user_info(user_id, fields, api_version):
 
   return user_info
 
+def write_to_csv(filename, fields, rows):
+  with open(filename, 'w', encoding='utf-8') as f:
+    f.write(fields + '\n')
+    for row in rows:
+      f.write(row + '\n')
+
 token = os.environ.get('TOKEN')
 if not token:
   print('Токен не найден в переменных окружения')
@@ -137,15 +143,9 @@ print('Количество вершин:', len(nodes))
 print('Количество рёбер:', len(edges))
 
 print('Запись вершин в файл nodes.csv')
-with open('nodes.csv', 'w', encoding='utf-8') as f:
-  f.write('id,label,type,sex\n')
-  for node in nodes:
-    f.write(node + '\n')
+write_to_csv('nodes.csv', 'id,label,type,sex', nodes)
 
 print('Запись ребер в файл edges.csv')
-with open('edges.csv', 'w', encoding='utf-8') as f:
-  f.write('source,target\n')
-  for edge in edges:
-    f.write(edge + '\n')
+write_to_csv('edges.csv', 'source,target', edges)
 
 input('Готово!')
