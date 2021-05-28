@@ -2,11 +2,11 @@ import requests
 import os
 import time
 
-def get_user_info(user_id, fields, api_version):
+def get_user_info(user_id, fields, token, api_version):
   params = {'user_id' : int(user_id),
               'fields' : ','.join(fields),
               'name_case' : 'Nom',
-              'v' : version,
+              'v' : api_version,
               'access_token' : token}
   url = 'https://api.vk.com/method/users.get'
 
@@ -58,6 +58,12 @@ def request_friends(user_id, count, fields, token, api_version):
             'fields' : ','.join(fields)}
   return requests.get(url, params=params).json()['response']
 
+def is_mutual(friend, my_friends):
+  for person in my_friends:
+    if person['id'] == friend['id']:
+      return True
+  return False
+
 token = os.environ.get('TOKEN')
 if not token:
   print('Токен не найден в переменных окружения')
@@ -72,7 +78,7 @@ while True:
   print('Получение информации об аккаунте')
 
   try: 
-    user = get_user_info(user_id, fields, version)
+    user = get_user_info(user_id, fields, token, version)
     user = make_dict_from_user_info(user, 'me')
     break
   except ValueError:
@@ -97,25 +103,26 @@ my_friends = request_friends(user_id, count, fields, token, version)['items']
 print('Количество друзей:', len(my_friends))
 
 edges = []
-for friend in my_friends:
-  edges.append(f"{user_id},{friend['id']}")
-  
+
 friends_of_friends = []
 open_accounts = 0
 
 for i, friend in enumerate(my_friends):
-  mutual_friends = 0
-  request = request_friends(friend.get('id'), count, fields, token, version)
+  mutual_friends = 1
   try:
-      response = request['items']
+      request = request_friends(friend.get('id'), count, fields, token, version)['items']
   except:
       continue
   
   open_accounts += 1
-  for _friend in response:
-      friends_of_friends.append(_friend)
-      edges.append(f"{friend['id']},{_friend['id']}")
+  
+  for _friend in request:
+    if is_mutual(_friend, my_friends):
+      mutual_friends += 1
+    friends_of_friends.append(_friend)
+    edges.append(f"{friend['id']},{_friend['id']},1")
 
+  edges.append(f"{user_id},{friend['id']},{mutual_friends}")
   print(f'Получение списка друзей друзей: {i+1}/{len(my_friends)}', end='\r')
   time.sleep(0.5)
 
@@ -139,6 +146,6 @@ print(f'Количество вершин: {len(nodes)}. Запись в фай�
 write_to_csv('nodes.csv', 'id,label,type,sex,domain,country,city,bdate', nodes)
 
 print(f'Количество рёбер: {len(edges)}. Запись в файл edges.csv')
-write_to_csv('edges.csv', 'source,target', edges)
+write_to_csv('edges.csv', 'source,target,weight', edges)
 
 input('Готово!')
