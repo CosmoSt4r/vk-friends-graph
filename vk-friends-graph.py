@@ -2,6 +2,33 @@ import requests
 import os
 import time
 
+def get_user_info(user_id, fields, api_version):
+  params = {'user_id' : int(user_id),
+              'fields' : ','.join(fields),
+              'name_case' : 'Nom',
+              'v' : version,
+              'access_token' : token}
+  url = 'https://api.vk.com/method/users.get'
+
+  try:
+      req = requests.get(url, params=params)
+      user = req.json()['response'][0]
+  except:
+      raise ValueError('Wrong user id or server error')
+  
+  user_info = {}
+  # Обязательные поля
+  user_info['name'] = (user['first_name'] + ' ' + user['last_name']).strip()
+  user_info['gender'] = 'male' if user['sex'] == 2 else 'female'
+  user_info['domain'] = user['domain']
+
+  # Необязательные поля
+  user_info['country'] = user['country']['title'] if user.get('country') else 'Unknown'
+  user_info['city'] = user['city']['title'] if user.get('city') else 'Unknown'
+  user_info['bdate'] = user['bdate'] if user.get('bdate') else 'Unknown'
+
+  return user_info
+
 token = os.environ.get('TOKEN')
 if not token:
   print('Токен не найден в переменных окружения')
@@ -11,38 +38,18 @@ version = '5.131'
 fields = ['sex', 'bdate', 'city', 'country', 'domain']
 
 while True:
-    user_id = input('Введите цифровой ID: ')
+  user_id = input('Введите цифровой ID: ')
 
-    print('Получение информации об аккаунте')
-    
-    params = {'user_id' : int(user_id),
-              'fields' : ','.join(fields),
-              'name_case' : 'Nom',
-              'v' : version,
-              'access_token' : token}
-    url = 'https://api.vk.com/method/users.get'
+  print('Получение информации об аккаунте')
 
-    try:
-        req = requests.get(url, params=params)
-        user = req.json()['response'][0]
-    except:
-        print('Не удалось получить информацию')
-        continue
-    
-    # Обязательные поля
-    user_name = (user['first_name'] + ' ' + user['last_name']).strip()
-    user_gender = 'male' if user['sex'] == 2 else 'female'
-    user_domain = user['domain']
-
-    # Необязательные поля
-    user_country = user['country']['title'] if user.get('country') else 'Unknown'
-    user_city = user['city']['title'] if user.get('city') else 'Unknown'
-    user_bdate = user['bdate'] if user.get('bdate') else 'Unknown'
-
+  try: 
+    user = get_user_info(user_id, fields, version)
     break
-    
+  except ValueError:
+    print('Не удалось получить информацию')
+    continue
 
-print('Имя:', user_name)
+print('Имя:', user.get('name'))
 
 while True:
   try:
@@ -105,7 +112,7 @@ print('\nЗакрытых аккаунтов среди друзей:', len(my_f
 
 nodes = []
 
-nodes.append(f'{user_id},{user_name},me,{user_gender}')
+nodes.append(f"{user_id},{user.get('name')},me,{user.get('gender')}")
 
 for friend in my_friends:
   _id = str(friend['id'])
