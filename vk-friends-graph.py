@@ -44,10 +44,10 @@ def make_node_from_user_info(user_info):
   return new_node
 
 def write_to_csv(filename, fields, rows):
-  with open(filename, 'w', encoding='utf-8') as f:
-    f.write(fields + '\n')
+  with open(filename, 'w', encoding='utf-8') as file:
+    file.write(fields + '\n')
     for row in rows:
-      f.write(row + '\n')
+      file.write(row + '\n')
 
 def request_friends(user_id, count, fields, token, api_version):
   url = f'https://api.vk.com/method/friends.get'
