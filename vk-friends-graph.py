@@ -137,7 +137,7 @@ my_friends = request_friends(user_id, count, fields, token, version)['items']
 print('Количество друзей:', len(my_friends))
 
 drop_without_mutuals = True if \
-  input('Пропускать людей без общих с вами друзей? (y/n): ').lower() == 'y' else False
+  input('Пропускать людей без общих с человеком друзей? (y/n): ').lower() == 'y' else False
 dropped = 0
 
 # Инициализация списков вершин и рёбер
@@ -151,6 +151,8 @@ open_accounts = 0
 
 # Для каждого друга получить список его друзей
 for i, friend in enumerate(my_friends):
+  print(f'Получение списка друзей друзей: {i+1}/{len(my_friends)}', end='\r')
+  
   mutual_friends = 1
   try:
       # Запрос в API
@@ -183,8 +185,7 @@ for i, friend in enumerate(my_friends):
   # Добавить друга в списко вершин
   friend = make_dict_from_user_info(friend, 'friend')
   nodes.append(make_node_from_user_info(friend))
-
-  print(f'Получение списка друзей друзей: {i+1}/{len(my_friends)}', end='\r')
+  
   time.sleep(0.5)
 
 print('\nЗакрытых аккаунтов среди друзей:', len(my_friends) - open_accounts)
